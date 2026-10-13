@@ -29,8 +29,8 @@ func main() {
 	}
 
 	db, err := gorm.Open(postgres.Open(cfg.DatabaseURL()), &gorm.Config{
-		TranslateError: true,                                  // error UNIQUE jadi gorm.ErrDuplicatedKey
-		Logger:         logger.Default.LogMode(logger.Silent), // log SQL bawaan GORM bukan JSON, jadi dimatikan
+		TranslateError: true,
+		Logger:         logger.Default.LogMode(logger.Silent),
 	})
 	if err != nil {
 		fatal("failed to connect to database", err)
@@ -60,10 +60,23 @@ func main() {
 	authService := services.NewAuthService(userRepo, jwtManager)
 	authController := controllers.NewAuthController(authService)
 
-	r := gin.Default()
+	taskRepo := repositories.NewTaskRepository(db)
+	taskLogRepo := repositories.NewTaskLogRepository()
+	idemRepo := repositories.NewIdempotencyRepository(rdb)
+	dbManager := repositories.NewDbManager(db)
+	notifier := services.NewNotificationService()
+	taskService := services.NewTaskService(taskRepo, taskLogRepo, idemRepo, userRepo, dbManager, notifier)
+	taskController := controllers.NewTaskController(taskService)
+
+	// pakai middleware sendiri (log JSON + recovery JSON), bukan bawaan gin
+	r := gin.New()
+	r.Use(helpers.LoggingMiddleware(), helpers.RecoveryMiddleware())
+
 	routerConfig := routers.Config{
 		Server:         r,
+		JWTManager:     jwtManager,
 		AuthController: authController,
+		TaskController: taskController,
 	}
 	routerConfig.Setup()
 
