@@ -8,7 +8,7 @@ REST API untuk mengelola task - Created by Barru Kurniawan
 ## Coba API
 
 ### Swagger
-Jalankan aplikasi (lihat [Cara Menjalankan](#cara-menjalankan)), lalu buka **http://localhost:8080/swagger**.
+Jalankan aplikasi (lihat [Cara Menjalankan](#cara-menjalankan)), lalu buka **http://localhost:8080/swagger**. atau **https://barrukurniawan.web.id/swagger**
 
 ### Postman Collection
 Download: [Tasks.postman_collection.json](docs/Tasks.postman_collection.json)
