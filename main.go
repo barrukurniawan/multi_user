@@ -68,7 +68,10 @@ func main() {
 	taskService := services.NewTaskService(taskRepo, taskLogRepo, idemRepo, userRepo, txManager, notifier)
 	taskController := controllers.NewTaskController(taskService)
 
-	r := gin.Default()
+	// pakai middleware sendiri (log JSON + recovery JSON), bukan bawaan gin
+	r := gin.New()
+	r.Use(helpers.LoggingMiddleware(), helpers.RecoveryMiddleware())
+
 	routerConfig := routers.Config{
 		Server:         r,
 		JWTManager:     jwtManager,

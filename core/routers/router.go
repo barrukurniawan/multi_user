@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/barrukurniawan/multi_user/core/controllers"
+	"github.com/barrukurniawan/multi_user/core/dto"
 	"github.com/barrukurniawan/multi_user/core/helpers"
 	"github.com/gin-gonic/gin"
 )
@@ -19,6 +20,7 @@ func (c *Config) Setup() {
 	c.HealthRoute()
 	c.AuthRoute()
 	c.TaskRoute()
+	c.NotFoundRoute()
 }
 func (c *Config) HealthRoute() {
 	c.Server.GET("/health", func(ctx *gin.Context) {
@@ -42,4 +44,15 @@ func (c *Config) TaskRoute() {
 	r.PUT("/:id", c.TaskController.Update)
 	r.DELETE("/:id", c.TaskController.Delete)
 	r.POST("/:id/assign", c.TaskController.Assign)
+}
+
+// supaya 404 & 405 juga balas JSON, bukan teks bawaan gin
+func (c *Config) NotFoundRoute() {
+	c.Server.HandleMethodNotAllowed = true
+	c.Server.NoRoute(func(ctx *gin.Context) {
+		ctx.JSON(http.StatusNotFound, dto.Error("NOT_FOUND", "endpoint tidak ditemukan"))
+	})
+	c.Server.NoMethod(func(ctx *gin.Context) {
+		ctx.JSON(http.StatusMethodNotAllowed, dto.Error("METHOD_NOT_ALLOWED", "method tidak diizinkan"))
+	})
 }
