@@ -63,9 +63,9 @@ func main() {
 	taskRepo := repositories.NewTaskRepository(db)
 	taskLogRepo := repositories.NewTaskLogRepository()
 	idemRepo := repositories.NewIdempotencyRepository(rdb)
-	txManager := repositories.NewTxManager(db)
+	dbManager := repositories.NewDbManager(db)
 	notifier := services.NewNotificationService()
-	taskService := services.NewTaskService(taskRepo, taskLogRepo, idemRepo, userRepo, txManager, notifier)
+	taskService := services.NewTaskService(taskRepo, taskLogRepo, idemRepo, userRepo, dbManager, notifier)
 	taskController := controllers.NewTaskController(taskService)
 
 	// pakai middleware sendiri (log JSON + recovery JSON), bukan bawaan gin
