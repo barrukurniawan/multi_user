@@ -1,7 +1,15 @@
 package main
 
-import "fmt"
+import (
+	"github.com/barrukurniawan/multi_user/core/routers"
+	"github.com/gin-gonic/gin"
+)
 
 func main() {
-	fmt.Println("Start to create a Project of Tasks by Barru Kurniawan")
+	r := gin.Default()
+	routerConfig := routers.Config{
+		Server: r,
+	}
+	routerConfig.Setup()
+	r.Run(":8080")
 }
