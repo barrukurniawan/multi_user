@@ -26,7 +26,7 @@ func (ctl *AuthController) Register(c *gin.Context) {
 
 	user, err := ctl.authService.Register(c.Request.Context(), req)
 	if err != nil {
-		helpers.WriteBindError(c, err)
+		helpers.WriteError(c, err)
 		return
 	}
 	c.JSON(http.StatusCreated, dto.Success(user))
@@ -41,7 +41,7 @@ func (ctl *AuthController) Login(c *gin.Context) {
 
 	token, err := ctl.authService.Login(c.Request.Context(), req)
 	if err != nil {
-		helpers.WriteBindError(c, err)
+		helpers.WriteError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, dto.Success(gin.H{"token": token, "token_type": "Bearer"}))

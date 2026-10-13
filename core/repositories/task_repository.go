@@ -7,6 +7,7 @@ import (
 
 	"github.com/barrukurniawan/multi_user/core/models"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type TaskFilter struct {
@@ -21,17 +22,18 @@ type TaskRepository interface {
 	Create(ctx context.Context, task *models.Task) error
 	FindAll(ctx context.Context, filter TaskFilter) ([]models.Task, int, error)
 	FindByID(ctx context.Context, id string) (*models.Task, error)
+	FindByIDForUpdate(ctx context.Context, db *gorm.DB, id string) (*models.Task, error)
 	Update(ctx context.Context, task *models.Task) error
 	Delete(ctx context.Context, id string) error
-	UpdateAssignee(ctx context.Context, tx *gorm.DB, taskID, assigneeID string) error
+	UpdateAssignee(ctx context.Context, db *gorm.DB, taskID, assigneeID string) error
 }
 
 type TaskLogRepository interface {
-	Create(ctx context.Context, tx *gorm.DB, log *models.TaskLog) error
+	Create(ctx context.Context, db *gorm.DB, log *models.TaskLog) error
 }
 
-type TxManager interface {
-	WithTx(ctx context.Context, fn func(tx *gorm.DB) error) error
+type DbManager interface {
+	SetDB(ctx context.Context, fn func(db *gorm.DB) error) error
 }
 
 type taskRepository struct {
@@ -85,6 +87,16 @@ func (r *taskRepository) FindByID(ctx context.Context, id string) (*models.Task,
 	return &task, nil
 }
 
+func (r *taskRepository) FindByIDForUpdate(ctx context.Context, db *gorm.DB, id string) (*models.Task, error) {
+	var task models.Task
+	err := db.WithContext(ctx).Clauses(clause.Locking{Strength: "UPDATE"}).
+		Where("id = ?", id).First(&task).Error
+	if err != nil {
+		return nil, err
+	}
+	return &task, nil
+}
+
 func (r *taskRepository) Update(ctx context.Context, task *models.Task) error {
 	task.UpdatedAt = time.Now()
 	return r.DB.WithContext(ctx).Model(task).
@@ -96,8 +108,8 @@ func (r *taskRepository) Delete(ctx context.Context, id string) error {
 	return r.DB.WithContext(ctx).Where("id = ?", id).Delete(&models.Task{}).Error
 }
 
-func (r *taskRepository) UpdateAssignee(ctx context.Context, tx *gorm.DB, taskID, assigneeID string) error {
-	result := tx.WithContext(ctx).Model(&models.Task{}).Where("id = ?", taskID).
+func (r *taskRepository) UpdateAssignee(ctx context.Context, db *gorm.DB, taskID, assigneeID string) error {
+	result := db.WithContext(ctx).Model(&models.Task{}).Where("id = ?", taskID).
 		Updates(map[string]any{"assignee_id": assigneeID, "updated_at": time.Now()})
 	if result.Error != nil {
 		return result.Error
@@ -114,18 +126,18 @@ func NewTaskLogRepository() TaskLogRepository {
 	return &taskLogRepository{}
 }
 
-func (r *taskLogRepository) Create(ctx context.Context, tx *gorm.DB, log *models.TaskLog) error {
-	return tx.WithContext(ctx).Create(log).Error
+func (r *taskLogRepository) Create(ctx context.Context, db *gorm.DB, log *models.TaskLog) error {
+	return db.WithContext(ctx).Create(log).Error
 }
 
-type txManager struct {
+type dbManager struct {
 	DB *gorm.DB
 }
 
-func NewTxManager(db *gorm.DB) TxManager {
-	return &txManager{DB: db}
+func NewDbManager(db *gorm.DB) DbManager {
+	return &dbManager{DB: db}
 }
 
-func (m *txManager) WithTx(ctx context.Context, fn func(tx *gorm.DB) error) error {
+func (m *dbManager) SetDB(ctx context.Context, fn func(db *gorm.DB) error) error {
 	return m.DB.WithContext(ctx).Transaction(fn)
 }

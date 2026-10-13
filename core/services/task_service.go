@@ -34,7 +34,7 @@ type taskService struct {
 	logRepo   repositories.TaskLogRepository
 	idemRepo  repositories.IdempotencyRepository
 	userRepo  repositories.UserRepository
-	txManager repositories.TxManager
+	dbManager repositories.DbManager
 	notifier  NotificationService
 }
 
@@ -43,7 +43,7 @@ func NewTaskService(
 	logRepo repositories.TaskLogRepository,
 	idemRepo repositories.IdempotencyRepository,
 	userRepo repositories.UserRepository,
-	txManager repositories.TxManager,
+	dbManager repositories.DbManager,
 	notifier NotificationService,
 ) TaskService {
 	return &taskService{
@@ -51,7 +51,7 @@ func NewTaskService(
 		logRepo:   logRepo,
 		idemRepo:  idemRepo,
 		userRepo:  userRepo,
-		txManager: txManager,
+		dbManager: dbManager,
 		notifier:  notifier,
 	}
 }
@@ -195,7 +195,7 @@ func (s *taskService) Delete(ctx context.Context, userID, taskID string) error {
 }
 
 func (s *taskService) Assign(ctx context.Context, userID, taskID, assigneeID string) (*models.Task, error) {
-	task, err := s.findTask(ctx, userID, taskID, true)
+	_, err := s.findTask(ctx, userID, taskID, true)
 	if err != nil {
 		return nil, err
 	}
@@ -215,13 +215,18 @@ func (s *taskService) Assign(ctx context.Context, userID, taskID, assigneeID str
 		return nil, helpers.Forbidden("DIFFERENT_TEAM", "task hanya bisa di-assign ke user dalam tim yang sama")
 	}
 
-	oldAssignee := ""
-	if task.AssigneeID != nil {
-		oldAssignee = *task.AssigneeID
-	}
+	err = s.dbManager.SetDB(ctx, func(db *gorm.DB) error {
+		lockedTask, err := s.taskRepo.FindByIDForUpdate(ctx, db, taskID)
+		if err != nil {
+			return err
+		}
 
-	err = s.txManager.WithTx(ctx, func(tx *gorm.DB) error {
-		if err := s.taskRepo.UpdateAssignee(ctx, tx, taskID, assigneeID); err != nil {
+		oldAssignee := ""
+		if lockedTask.AssigneeID != nil {
+			oldAssignee = *lockedTask.AssigneeID
+		}
+
+		if err := s.taskRepo.UpdateAssignee(ctx, db, taskID, assigneeID); err != nil {
 			return err
 		}
 
@@ -232,7 +237,7 @@ func (s *taskService) Assign(ctx context.Context, userID, taskID, assigneeID str
 			NewValue:  assigneeID,
 			ChangedBy: userID,
 		}
-		if err := s.logRepo.Create(ctx, tx, taskLog); err != nil {
+		if err := s.logRepo.Create(ctx, db, taskLog); err != nil {
 			return err
 		}
 

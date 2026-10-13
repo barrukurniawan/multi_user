@@ -7,6 +7,7 @@ import (
 
 	"github.com/barrukurniawan/multi_user/core/dto"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 )
 
@@ -21,8 +22,16 @@ func WriteError(c *gin.Context, err error) {
 	c.JSON(http.StatusInternalServerError, dto.Error("INTERNAL_ERROR", "terjadi kesalahan pada server"))
 }
 
+// pesan error asli dari Go tidak dikirim ke client, cukup sebut field yang salah
 func WriteBindError(c *gin.Context, err error) {
-	c.JSON(http.StatusBadRequest, dto.Error("INVALID_INPUT", "request tidak valid: "+err.Error()))
+	message := "format request tidak valid"
+
+	var validationErrs validator.ValidationErrors
+	if errors.As(err, &validationErrs) {
+		message = "field " + validationErrs[0].Field() + " tidak valid"
+	}
+
+	c.JSON(http.StatusBadRequest, dto.Error("INVALID_INPUT", message))
 }
 
 func TaskIDParam(c *gin.Context) (string, bool) {
