@@ -5,17 +5,6 @@ REST API untuk mengelola task - Created by Barru Kurniawan
 [![Swagger](https://img.shields.io/badge/Swagger-API_Docs-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)](https://barrukurniawan.web.id/swagger)
 [![Postman](https://img.shields.io/badge/Postman-Collection-FF6C37?style=for-the-badge&logo=postman&logoColor=white)](docs/Tasks.postman_collection.json)
 
-## Coba API
-
-### Swagger
-Jalankan aplikasi (lihat [Cara Menjalankan](#cara-menjalankan)), lalu buka **http://localhost:8080/swagger**. atau **https://barrukurniawan.web.id/swagger**
-
-### Postman Collection
-Download: [Tasks.postman_collection.json](docs/Tasks.postman_collection.json)
-
-Cara pakai: buka Postman → Import → pilih file Tasks.postman_collection.json 
-Jalankan sekaligus lewat **Run collection**.
-
 ## Tech Stack
 - Language : Go 1.26
 - Framework : Gin
