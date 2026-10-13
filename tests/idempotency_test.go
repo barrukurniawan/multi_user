@@ -74,7 +74,7 @@ func newService() (services.TaskService, *mockTaskRepo) {
 	return services.NewTaskService(tasks, nil, idem, nil, nil, nil), tasks
 }
 
-func TestIdempotency_Sequential(t *testing.T) {
+func TestIdempotencySequential(t *testing.T) {
 	svc, tasks := newService()
 	key := uuid.NewString()
 	req := dto.CreateTaskRequest{Title: "Belajar Go"}
@@ -100,7 +100,7 @@ func TestIdempotency_Sequential(t *testing.T) {
 	}
 }
 
-func TestIdempotency_ConcurrentDuplicate(t *testing.T) {
+func TestIdempotencyConcurrentDuplicate(t *testing.T) {
 	svc, tasks := newService()
 	key := uuid.NewString()
 	const n = 50
