@@ -97,6 +97,11 @@ paths:
         "400": { $ref: "#/components/responses/BadRequest" }
         "401": { $ref: "#/components/responses/Unauthorized" }
         "409": { $ref: "#/components/responses/Conflict" }
+        "422":
+          description: Idempotency-Key sudah dipakai dengan isi body yang berbeda (IDEMPOTENCY_KEY_REUSED)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
 
     get:
       tags: [Tasks]

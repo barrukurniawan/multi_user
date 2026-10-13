@@ -12,8 +12,8 @@ import (
 
 type IdempotencyRepository interface {
 	Find(ctx context.Context, key string) (*models.IdempotencyKey, error)
-	Reserve(ctx context.Context, key, userID string, ttl time.Duration) (bool, error)
-	SaveResponse(ctx context.Context, key, userID string, response []byte, statusCode int) error
+	Reserve(ctx context.Context, key, requestHash string, ttl time.Duration) (bool, error)
+	SaveResponse(ctx context.Context, key, requestHash string, response []byte, statusCode int) error
 	Release(ctx context.Context, key string) error
 }
 
@@ -45,16 +45,16 @@ func (r *idempotencyRepository) Find(ctx context.Context, key string) (*models.I
 	return &k, nil
 }
 
-func (r *idempotencyRepository) Reserve(ctx context.Context, key, userID string, ttl time.Duration) (bool, error) {
-	data, err := json.Marshal(models.IdempotencyKey{UserID: userID})
+func (r *idempotencyRepository) Reserve(ctx context.Context, key, requestHash string, ttl time.Duration) (bool, error) {
+	data, err := json.Marshal(models.IdempotencyKey{RequestHash: requestHash})
 	if err != nil {
 		return false, err
 	}
 	return r.Redis.SetNX(ctx, redisKey(key), data, ttl).Result()
 }
 
-func (r *idempotencyRepository) SaveResponse(ctx context.Context, key, userID string, response []byte, statusCode int) error {
-	data, err := json.Marshal(models.IdempotencyKey{UserID: userID, StatusCode: statusCode, Response: response})
+func (r *idempotencyRepository) SaveResponse(ctx context.Context, key, requestHash string, response []byte, statusCode int) error {
+	data, err := json.Marshal(models.IdempotencyKey{RequestHash: requestHash, StatusCode: statusCode, Response: response})
 	if err != nil {
 		return err
 	}
