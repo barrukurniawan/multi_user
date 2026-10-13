@@ -54,6 +54,10 @@ Jika ingin kondisi perulangan, cth : 30x
 ```
 go test -race -count=30 ./tests/
 ```
+Jika ingin test semua file
+```
+go test -v ./tests/
+```
 
 ## Daftar Endpoint
 
