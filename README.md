@@ -75,6 +75,12 @@ go test -v ./tests/
 
 Status task: `todo`, `in_progress`, `done`.
 
+### Postman Collection
+Download: [Tasks.postman_collection.json](docs/Tasks.postman_collection.json)
+
+Cara pakai: buka Postman → Import → pilih file Tasks.postman_collection.json
+Jalankan sekaligus lewat **Run collection**.
+
 ### Contoh request
 
 Register:

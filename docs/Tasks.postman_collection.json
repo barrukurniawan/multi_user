@@ -1,0 +1,912 @@
+{
+  "info": {
+    "_postman_id": "e5f5c779-5fe4-407c-9c66-eedf003b844b",
+    "name": "Tasks",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Urutan pakai: Tasks Register -> Tasks Login -> Tasks Create -> request lainnya.\n\n- Login otomatis menyimpan `token`\n- Create otomatis menyimpan `task_id`\n- Register otomatis menyimpan `assignee_id` (id user yang baru dibuat)\n\nBisa juga dijalankan sekaligus lewat Collection Runner (Run collection)."
+  },
+  "item": [
+    {
+      "name": "Tasks Register",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"Barru Kurniawan\",\n    \"email\": \"barru@example.com\",\n    \"password\": \"rahasia123\",\n    \"team_name\": \"Engineering\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/auth/register",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "register"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Success 201",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Barru Kurniawan\",\n    \"email\": \"barru@example.com\",\n    \"password\": \"rahasia123\",\n    \"team_name\": \"Engineering\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "status": "Created",
+          "code": 201,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Tue, 13 Oct 2026 05:33:10 GMT"
+            },
+            {
+              "key": "Content-Length",
+              "value": "269"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"status\": \"success\",\n    \"data\": {\n        \"id\": \"d6ba2fcc-b205-43ae-ad21-f3743c6f105d\",\n        \"team_id\": \"637e5ea4-e1b5-4dbd-b2d9-b9d11ba983f4\",\n        \"name\": \"Barru Kurniawan\",\n        \"email\": \"barru@example.com\",\n        \"created_at\": \"2026-10-13T12:33:10.825944+07:00\",\n        \"updated_at\": \"2026-10-13T12:33:10.825944+07:00\"\n    }\n}"
+        }
+      ],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+              "",
+              "// user yang baru register dipakai sebagai assignee_id",
+              "if (pm.response.code === 201) {",
+              "    pm.collectionVariables.set(\"assignee_id\", pm.response.json().data.id);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tasks Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"email\": \"barru@example.com\",\n    \"password\": \"rahasia123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/auth/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Success 200",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"barru@example.com\",\n    \"password\": \"rahasia123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Tue, 13 Oct 2026 05:33:45 GMT"
+            },
+            {
+              "key": "Content-Length",
+              "value": "255"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"status\": \"success\",\n    \"data\": {\n        \"token\": \"<jwt-token>\",\n        \"token_type\": \"Bearer\"\n    }\n}"
+        }
+      ],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+              "",
+              "// simpan token supaya request tasks berikutnya otomatis pakai token ini",
+              "if (pm.response.code === 200) {",
+              "    pm.collectionVariables.set(\"token\", pm.response.json().data.token);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tasks Create",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "{{$guid}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"title\": \"Belajar Machine Learning untuk Pemula\",\n    \"description\": \"Belajar Bahasa Python 3 untuk Neural Network\",\n    \"status\": \"todo\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/tasks",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "tasks"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Success 201",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "6f1c2b7e-0001-4a1b-9c3d-000000000001"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Belajar Go\",\n    \"description\": \"Ketik ulang project multi_user\",\n    \"status\": \"todo\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/tasks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tasks"
+              ]
+            }
+          },
+          "status": "Created",
+          "code": 201,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Tue, 13 Oct 2026 06:26:56 GMT"
+            },
+            {
+              "key": "Content-Length",
+              "value": "321"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"status\": \"success\",\n    \"data\": {\n        \"id\": \"ab60af7a-aac7-4030-83d8-72beeefe41b0\",\n        \"title\": \"Belajar Go\",\n        \"description\": \"Ketik ulang project multi_user\",\n        \"status\": \"todo\",\n        \"user_id\": \"d6ba2fcc-b205-43ae-ad21-f3743c6f105d\",\n        \"assignee_id\": null,\n        \"created_at\": \"2026-10-13T13:26:56.298373+07:00\",\n        \"updated_at\": \"2026-10-13T13:26:56.298373+07:00\"\n    }\n}"
+        }
+      ],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+              "",
+              "// simpan id task untuk Get One, Update, Assign, Delete",
+              "if (pm.response.code === 201) {",
+              "    pm.collectionVariables.set(\"task_id\", pm.response.json().data.id);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tasks List",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/tasks?status=todo&search=belajar&page=1&limit=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "tasks"
+          ],
+          "query": [
+            {
+              "key": "status",
+              "value": "todo"
+            },
+            {
+              "key": "search",
+              "value": "belajar"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Success 200",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/tasks?status=todo&search=belajar&page=1&limit=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tasks"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "todo"
+                },
+                {
+                  "key": "search",
+                  "value": "belajar"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Tue, 13 Oct 2026 06:31:00 GMT"
+            },
+            {
+              "key": "Content-Length",
+              "value": "668"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"status\": \"success\",\n    \"data\": [\n        {\n            \"id\": \"f86c464a-ec5d-40dd-9e81-858548026643\",\n            \"title\": \"Belajar Python 3\",\n            \"description\": \"Belajar neural network\",\n            \"status\": \"todo\",\n            \"user_id\": \"d6ba2fcc-b205-43ae-ad21-f3743c6f105d\",\n            \"assignee_id\": null,\n            \"created_at\": \"2026-10-13T13:30:57.95894+07:00\",\n            \"updated_at\": \"2026-10-13T13:30:57.95894+07:00\"\n        },\n        {\n            \"id\": \"ab60af7a-aac7-4030-83d8-72beeefe41b0\",\n            \"title\": \"Belajar Go\",\n            \"description\": \"Ketik ulang project multi_user\",\n            \"status\": \"todo\",\n            \"user_id\": \"d6ba2fcc-b205-43ae-ad21-f3743c6f105d\",\n            \"assignee_id\": null,\n            \"created_at\": \"2026-10-13T13:26:56.298373+07:00\",\n            \"updated_at\": \"2026-10-13T13:26:56.298373+07:00\"\n        }\n    ],\n    \"meta\": {\n        \"page\": 1,\n        \"limit\": 10,\n        \"total\": 2,\n        \"total_pages\": 1\n    }\n}"
+        }
+      ],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+              "",
+              "// kalau task_id belum ada, ambil dari task pertama di list",
+              "const tasks = pm.response.json().data || [];",
+              "if (!pm.collectionVariables.get(\"task_id\") && tasks.length > 0) {",
+              "    pm.collectionVariables.set(\"task_id\", tasks[0].id);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tasks Get One",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/tasks/{{task_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "tasks",
+            "{{task_id}}"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Success 200",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/tasks/{{task_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tasks",
+                "{{task_id}}"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Tue, 13 Oct 2026 06:32:18 GMT"
+            },
+            {
+              "key": "Content-Length",
+              "value": "317"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"status\": \"success\",\n    \"data\": {\n        \"id\": \"f86c464a-ec5d-40dd-9e81-858548026643\",\n        \"title\": \"Belajar Python 3\",\n        \"description\": \"Belajar neural network\",\n        \"status\": \"todo\",\n        \"user_id\": \"d6ba2fcc-b205-43ae-ad21-f3743c6f105d\",\n        \"assignee_id\": null,\n        \"created_at\": \"2026-10-13T13:30:57.95894+07:00\",\n        \"updated_at\": \"2026-10-13T13:30:57.95894+07:00\"\n    }\n}"
+        }
+      ],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!pm.collectionVariables.get(\"task_id\")) {",
+              "    throw new Error(\"task_id masih kosong, jalankan \\\"Tasks Create\\\" atau \\\"Tasks List\\\" dulu\");",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tasks Update",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"title\": \"Belajar Machine Learning untuk Pro\",\n    \"description\": \"Sudah sampai mahir Python\",\n    \"status\": \"in_progress\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/tasks/{{task_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "tasks",
+            "{{task_id}}"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Success 200",
+          "originalRequest": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Belajar Machine Learning untuk Pro\",\n    \"description\": \"Sudah sampai mahir Python\",\n    \"status\": \"in_progress\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/tasks/{{task_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tasks",
+                "{{task_id}}"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Tue, 13 Oct 2026 06:37:00 GMT"
+            },
+            {
+              "key": "Content-Length",
+              "value": "347"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"status\": \"success\",\n    \"data\": {\n        \"id\": \"cc1538a2-8916-4558-9922-b12bbc1fdfb9\",\n        \"title\": \"Belajar Machine Learning untuk Pro\",\n        \"description\": \"Sudah sampai mahir Python\",\n        \"status\": \"in_progress\",\n        \"user_id\": \"d6ba2fcc-b205-43ae-ad21-f3743c6f105d\",\n        \"assignee_id\": null,\n        \"created_at\": \"2026-10-13T13:34:39.736405+07:00\",\n        \"updated_at\": \"2026-10-13T13:37:00.799346+07:00\"\n    }\n}"
+        }
+      ],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!pm.collectionVariables.get(\"task_id\")) {",
+              "    throw new Error(\"task_id masih kosong, jalankan \\\"Tasks Create\\\" atau \\\"Tasks List\\\" dulu\");",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tasks Assign User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"assignee_id\": \"{{assignee_id}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/tasks/{{task_id}}/assign",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "tasks",
+            "{{task_id}}",
+            "assign"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Success 200",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"assignee_id\": \"{{assignee_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/tasks/{{task_id}}/assign",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tasks",
+                "{{task_id}}",
+                "assign"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Tue, 13 Oct 2026 06:38:58 GMT"
+            },
+            {
+              "key": "Content-Length",
+              "value": "381"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"status\": \"success\",\n    \"data\": {\n        \"id\": \"cc1538a2-8916-4558-9922-b12bbc1fdfb9\",\n        \"title\": \"Belajar Machine Learning untuk Pro\",\n        \"description\": \"Sudah sampai mahir Python\",\n        \"status\": \"in_progress\",\n        \"user_id\": \"d6ba2fcc-b205-43ae-ad21-f3743c6f105d\",\n        \"assignee_id\": \"d6ba2fcc-b205-43ae-ad21-f3743c6f105d\",\n        \"created_at\": \"2026-10-13T13:34:39.736405+07:00\",\n        \"updated_at\": \"2026-10-13T13:38:58.329732+07:00\"\n    }\n}"
+        }
+      ],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!pm.collectionVariables.get(\"task_id\")) {",
+              "    throw new Error(\"task_id masih kosong, jalankan \\\"Tasks Create\\\" atau \\\"Tasks List\\\" dulu\");",
+              "}",
+              "if (!pm.collectionVariables.get(\"assignee_id\")) {",
+              "    throw new Error(\"assignee_id masih kosong, isi di tab Variables collection atau jalankan \\\"Tasks Register\\\" dulu\");",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tasks Delete",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/tasks/{{task_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "tasks",
+            "{{task_id}}"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Success 200",
+          "originalRequest": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/tasks/{{task_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tasks",
+                "{{task_id}}"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Date",
+              "value": "Tue, 13 Oct 2026 06:39:52 GMT"
+            },
+            {
+              "key": "Content-Length",
+              "value": "63"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"status\": \"success\",\n    \"data\": {\n        \"message\": \"task berhasil dihapus\"\n    }\n}"
+        }
+      ],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!pm.collectionVariables.get(\"task_id\")) {",
+              "    throw new Error(\"task_id masih kosong, jalankan \\\"Tasks Create\\\" atau \\\"Tasks List\\\" dulu\");",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+              "",
+              "// task sudah dihapus, kosongkan task_id",
+              "if (pm.response.code === 200) {",
+              "    pm.collectionVariables.unset(\"task_id\");",
+              "}"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// semua endpoint /tasks butuh token, pastikan sudah login",
+          "const isTaskRequest = pm.request.url.getPath().startsWith(\"/api/v1/tasks\");",
+          "if (isTaskRequest && !pm.collectionVariables.get(\"token\")) {",
+          "    throw new Error(\"token masih kosong, jalankan \\\"Tasks Login\\\" dulu\");",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "task_id",
+      "value": ""
+    },
+    {
+      "key": "assignee_id",
+      "value": "d6ba2fcc-b205-43ae-ad21-f3743c6f105d"
+    }
+  ]
+}
