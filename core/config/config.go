@@ -16,6 +16,8 @@ type Config struct {
 	DBPassword     string
 	DBName         string
 	DBSSLMode      string
+	RedisAddr      string
+	RedisPassword  string
 	JWTSecret      string
 	JWTExpiryHours int
 	ServerPort     string
@@ -36,6 +38,8 @@ func Load() (*Config, error) {
 		DBPassword:     getEnv("DB_PASSWORD", "taskpass"),
 		DBName:         getEnv("DB_NAME", "taskdb"),
 		DBSSLMode:      getEnv("DB_SSLMODE", "disable"),
+		RedisAddr:      getEnv("REDIS_ADDR", "localhost:6379"),
+		RedisPassword:  os.Getenv("REDIS_PASSWORD"),
 		JWTSecret:      os.Getenv("JWT_SECRET"),
 		JWTExpiryHours: expiryHours,
 		ServerPort:     getEnv("SERVER_PORT", "8080"),

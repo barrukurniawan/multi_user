@@ -38,10 +38,4 @@ CREATE TABLE IF NOT EXISTS task_logs (
     created_at TIMESTAMPTZ NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS idempotency_keys (
-    key         UUID PRIMARY KEY,
-    user_id     UUID        NOT NULL REFERENCES users(id),
-    response    JSONB,
-    status_code INT         NOT NULL,
-    expires_at  TIMESTAMPTZ NOT NULL
-);
+-- Note: IdempotencyKey tidak disimpan di database, tapi di Redis (exp 24 jam).
