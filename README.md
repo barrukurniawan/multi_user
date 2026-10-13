@@ -54,7 +54,7 @@ Jika ingin kondisi perulangan, cth : 30x
 ```
 go test -race -count=30 ./tests/
 ```
-Jika ingin test semua file
+Jika ingin test semua file & tampil detailnya
 ```
 go test -v ./tests/
 ```
@@ -131,7 +131,7 @@ core/
   models/            -> struct tabel
   dto/               -> struct request & response
   helpers/           -> JWT, middleware, format error
-tests/               -> unit test idempotency (pakai mock)
+tests/               -> unit test idempotency, auth, error handling, logging (pakai mock)
 ```
 
 Catatan beberapa fitur:
