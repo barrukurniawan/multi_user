@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Task Board</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 14px;
+      background: #f4f5f7;
+      color: #172b4d;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: #0052cc;
+      color: #fff;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    input,
+    textarea,
+    select,
+    button {
+      font: inherit;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #c1c7d0;
+      border-radius: 4px;
+      background: #fff;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    button {
+      padding: 8px 12px;
+      border: 0;
+      border-radius: 4px;
+      background: #0052cc;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0747a6;
+    }
+
+    button.secondary {
+      background: #dfe1e6;
+      color: #172b4d;
+    }
+
+    button.secondary:hover {
+      background: #c1c7d0;
+    }
+
+    button.danger {
+      background: #de350b;
+    }
+
+    button.small {
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+
+    header button {
+      background: #fff;
+      color: #0052cc;
+    }
+
+    .box {
+      background: #fff;
+      border-radius: 6px;
+      padding: 16px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+    }
+
+    .auth {
+      max-width: 360px;
+      margin: 40px auto;
+    }
+
+    .auth h2 {
+      margin-top: 0;
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 4px;
+      font-weight: bold;
+    }
+
+    .link {
+      color: #0052cc;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .message {
+      padding: 8px 12px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+    }
+
+    .message.error {
+      background: #ffebe6;
+      color: #bf2600;
+    }
+
+    .message.success {
+      background: #e3fcef;
+      color: #006644;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: 2fr 3fr auto;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .search {
+      margin-bottom: 16px;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      align-items: start;
+    }
+
+    .column {
+      background: #ebecf0;
+      border-radius: 6px;
+      padding: 8px;
+    }
+
+    .column h3 {
+      margin: 4px 4px 8px;
+      font-size: 13px;
+      text-transform: uppercase;
+      color: #5e6c84;
+    }
+
+    .count {
+      font-weight: normal;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 4px;
+      padding: 10px;
+      margin-bottom: 8px;
+      box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+    }
+
+    .card .title {
+      font-weight: bold;
+      margin-bottom: 4px;
+      word-break: break-word;
+    }
+
+    .card .desc {
+      color: #5e6c84;
+      margin-bottom: 8px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .card .meta {
+      font-size: 11px;
+      color: #97a0af;
+      margin-bottom: 8px;
+    }
+
+    .card .actions {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .empty {
+      color: #97a0af;
+      text-align: center;
+      padding: 12px 0;
+    }
+
+    /* mobile: kolom ditumpuk ke bawah */
+    @media (max-width: 700px) {
+      .toolbar {
+        grid-template-columns: 1fr;
+      }
+
+      .board {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Task Board</h1>
+    <button id="logoutBtn" class="small hidden">Logout</button>
+  </header>
+
+  <main>
+    <div id="message" class="message hidden"></div>
+
+    <!-- Login / Register -->
+    <section id="authView" class="box auth">
+      <h2 id="authTitle">Login</h2>
+      <form id="authForm">
+        <div class="field register-only hidden">
+          <label for="name">Nama</label>
+          <input id="name" placeholder="Barru Kurniawan">
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" type="email" placeholder="barru@example.com" required>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" type="password" placeholder="minimal 6 karakter" required>
+        </div>
+        <div class="field register-only hidden">
+          <label for="teamName">Nama Tim</label>
+          <input id="teamName" placeholder="Engineering">
+        </div>
+        <button type="submit" id="authBtn">Login</button>
+      </form>
+      <p id="authSwitch">Belum punya akun? <span class="link" data-mode="register">Register</span></p>
+    </section>
+
+    <!-- Board -->
+    <section id="boardView" class="hidden">
+      <form id="createForm" class="toolbar">
+        <input id="newTitle" placeholder="Judul task baru" required>
+        <input id="newDesc" placeholder="Deskripsi (opsional)">
+        <button type="submit">+ Tambah</button>
+      </form>
+
+      <div class="search">
+        <input id="search" placeholder="Cari task berdasarkan judul...">
+      </div>
+
+      <div class="board">
+        <div class="column">
+          <h3>To Do <span class="count" id="count-todo"></span></h3>
+          <div id="col-todo"></div>
+        </div>
+        <div class="column">
+          <h3>In Progress <span class="count" id="count-in_progress"></span></h3>
+          <div id="col-in_progress"></div>
+        </div>
+        <div class="column">
+          <h3>Done <span class="count" id="count-done"></span></h3>
+          <div id="col-done"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const STATUSES = ["todo", "in_progress", "done"];
+    let token = localStorage.getItem("token") || "";
+    let authMode = "login";
+    let searchTimer = null;
+
+    function $(id) {
+      return document.getElementById(id);
+    }
+
+    function showMessage(text, type) {
+      const el = $("message");
+      el.textContent = text;
+      el.className = "message " + (type || "error");
+      clearTimeout(el.timer);
+      el.timer = setTimeout(() => el.classList.add("hidden"), 4000);
+    }
+
+
+    async function api(method, path, body, headers) {
+      const res = await fetch("/api/v1" + path, {
+        method: method,
+        headers: Object.assign(
+          { "Content-Type": "application/json" },
+          token ? { Authorization: "Bearer " + token } : {},
+          headers || {}
+        ),
+        body: body ? JSON.stringify(body) : undefined,
+      });
+      const json = await res.json().catch(() => ({}));
+
+      if (res.status === 401 && token) {
+        logout();
+        throw new Error("Sesi habis, silakan login lagi");
+      }
+      if (!res.ok) {
+        throw new Error(json.message || "Terjadi kesalahan");
+      }
+      return json;
+    }
+
+
+    function setAuthMode(mode) {
+      authMode = mode;
+      const isRegister = mode === "register";
+      $("authTitle").textContent = isRegister ? "Register" : "Login";
+      $("authBtn").textContent = isRegister ? "Register" : "Login";
+      document.querySelectorAll(".register-only").forEach((el) => el.classList.toggle("hidden", !isRegister));
+      $("name").required = isRegister;
+      $("teamName").required = isRegister;
+      $("authSwitch").innerHTML = isRegister
+        ? 'Sudah punya akun? <span class="link" data-mode="login">Login</span>'
+        : 'Belum punya akun? <span class="link" data-mode="register">Register</span>';
+    }
+
+    $("authSwitch").addEventListener("click", (e) => {
+      if (e.target.dataset.mode) setAuthMode(e.target.dataset.mode);
+    });
+
+    $("authForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = $("email").value.trim();
+      const password = $("password").value;
+
+      try {
+        if (authMode === "register") {
+          await api("POST", "/auth/register", {
+            name: $("name").value.trim(),
+            email: email,
+            password: password,
+            team_name: $("teamName").value.trim(),
+          });
+          showMessage("Register berhasil, silakan login", "success");
+          setAuthMode("login");
+          return;
+        }
+
+        const res = await api("POST", "/auth/login", { email: email, password: password });
+        token = res.data.token;
+        localStorage.setItem("token", token);
+        showBoard();
+      } catch (err) {
+        showMessage(err.message);
+      }
+    });
+
+    function logout() {
+      token = "";
+      localStorage.removeItem("token");
+      $("boardView").classList.add("hidden");
+      $("logoutBtn").classList.add("hidden");
+      $("authView").classList.remove("hidden");
+    }
+
+    $("logoutBtn").addEventListener("click", logout);
+
+
+
+    function showBoard() {
+      $("authView").classList.add("hidden");
+      $("boardView").classList.remove("hidden");
+      $("logoutBtn").classList.remove("hidden");
+      loadTasks();
+    }
+
+    async function loadTasks() {
+      const search = encodeURIComponent($("search").value.trim());
+      try {
+        const res = await api("GET", "/tasks?limit=100&search=" + search);
+        renderBoard(res.data);
+      } catch (err) {
+        showMessage(err.message);
+      }
+    }
+
+    function renderBoard(tasks) {
+      STATUSES.forEach((status) => {
+        const col = $("col-" + status);
+        const list = tasks.filter((t) => t.status === status);
+        col.innerHTML = "";
+        $("count-" + status).textContent = "(" + list.length + ")";
+
+        if (list.length === 0) {
+          col.innerHTML = '<div class="empty">Kosong</div>';
+          return;
+        }
+        list.forEach((task) => col.appendChild(renderCard(task)));
+      });
+    }
+
+    function renderCard(task) {
+      const card = document.createElement("div");
+      card.className = "card";
+
+
+      const title = document.createElement("div");
+      title.className = "title";
+      title.textContent = task.title;
+      card.appendChild(title);
+
+      if (task.description) {
+        const desc = document.createElement("div");
+        desc.className = "desc";
+        desc.textContent = task.description;
+        card.appendChild(desc);
+      }
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      meta.textContent = new Date(task.created_at).toLocaleString("id-ID");
+      card.appendChild(meta);
+
+      const actions = document.createElement("div");
+      actions.className = "actions";
+      const index = STATUSES.indexOf(task.status);
+
+      if (index > 0) {
+        actions.appendChild(button("← " + label(STATUSES[index - 1]), "secondary", () => moveTask(task, STATUSES[index - 1])));
+      }
+      if (index < STATUSES.length - 1) {
+        actions.appendChild(button(label(STATUSES[index + 1]) + " →", "secondary", () => moveTask(task, STATUSES[index + 1])));
+      }
+      actions.appendChild(button("Edit", "secondary", () => editTask(task)));
+      actions.appendChild(button("Hapus", "danger", () => deleteTask(task)));
+      card.appendChild(actions);
+
+      return card;
+    }
+
+    function button(text, style, onClick) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "small " + style;
+      btn.textContent = text;
+      btn.addEventListener("click", onClick);
+      return btn;
+    }
+
+    function label(status) {
+      return { todo: "To Do", in_progress: "In Progress", done: "Done" }[status];
+    }
+
+
+
+    $("createForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      try {
+
+        await api(
+          "POST",
+          "/tasks",
+          { title: $("newTitle").value.trim(), description: $("newDesc").value.trim(), status: "todo" },
+          { "Idempotency-Key": crypto.randomUUID() }
+        );
+        $("newTitle").value = "";
+        $("newDesc").value = "";
+        loadTasks();
+      } catch (err) {
+        showMessage(err.message);
+      }
+    });
+
+    async function moveTask(task, status) {
+      try {
+        await api("PUT", "/tasks/" + task.id, { status: status });
+        loadTasks();
+      } catch (err) {
+        showMessage(err.message);
+      }
+    }
+
+    async function editTask(task) {
+      const title = prompt("Judul task:", task.title);
+      if (title === null) return;
+      const description = prompt("Deskripsi:", task.description || "");
+      if (description === null) return;
+
+      try {
+        await api("PUT", "/tasks/" + task.id, { title: title.trim(), description: description.trim() });
+        loadTasks();
+      } catch (err) {
+        showMessage(err.message);
+      }
+    }
+
+    async function deleteTask(task) {
+      if (!confirm('Hapus task "' + task.title + '"?')) return;
+      try {
+        await api("DELETE", "/tasks/" + task.id);
+        loadTasks();
+      } catch (err) {
+        showMessage(err.message);
+      }
+    }
+
+
+    $("search").addEventListener("input", () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(loadTasks, 300);
+    });
+
+
+    if (token) {
+      showBoard();
+    }
+  </script>
+</body>
+
+</html>

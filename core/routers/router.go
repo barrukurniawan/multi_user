@@ -7,6 +7,7 @@ import (
 	"github.com/barrukurniawan/multi_user/core/dto"
 	"github.com/barrukurniawan/multi_user/core/helpers"
 	"github.com/barrukurniawan/multi_user/docs"
+	"github.com/barrukurniawan/multi_user/web"
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,6 +23,7 @@ func (c *Config) Setup() {
 	c.AuthRoute()
 	c.TaskRoute()
 	c.SwaggerRoute()
+	c.WebRoute()
 	c.NotFoundRoute()
 }
 func (c *Config) HealthRoute() {
@@ -58,7 +60,12 @@ func (c *Config) SwaggerRoute() {
 	})
 }
 
-// supaya 404 & 405 juga balas JSON, bukan teks bawaan gin
+func (c *Config) WebRoute() {
+	c.Server.GET("/", func(ctx *gin.Context) {
+		ctx.Data(http.StatusOK, "text/html; charset=utf-8", web.IndexHTML)
+	})
+}
+
 func (c *Config) NotFoundRoute() {
 	c.Server.HandleMethodNotAllowed = true
 	c.Server.NoRoute(func(ctx *gin.Context) {
