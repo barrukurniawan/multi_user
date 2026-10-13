@@ -50,6 +50,10 @@ Test tidak butuh database / Redis (pakai mock).
 ```
 go test -race ./tests/...
 ```
+Jika ingin kondisi perulangan, cth : 30x
+```
+go test -race -count=30 ./tests/
+```
 
 ## Daftar Endpoint
 
