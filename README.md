@@ -146,5 +146,5 @@ tests/               -> unit test idempotency, auth, error handling, logging (pa
 
 Catatan beberapa fitur:
 - **Logging** : Setiap request menghasilkan log JSON berisi `request_id`, `method`, `path`, `status_code`, `latency_ms`. Level INFO untuk 2xx/3xx, WARN untuk 4xx, ERROR untuk 5xx.
-- **Error handling** : Panic dicover oleh `RecoveryMiddleware` dan dibalas 500 dalam format JSON, tanpa stack trace di response (stack trace hanya ditulis ke log).
+- **Error handling** : Panic dicover oleh `RecoveryMiddleware` & balikan status code 500 dalam format JSON, tanpa stack trace di response (stack trace hanya ditulis ke log).
 - **Team** : Team dibuat otomatis saat register berdasarkan `team_name`. User dengan `team_name` yang sama dianggap satu tim.
