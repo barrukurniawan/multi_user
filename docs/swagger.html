@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Task API Docs</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.17.14/swagger-ui.css">
+</head>
+
+<body>
+  <div id="swagger-ui"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.17.14/swagger-ui-bundle.js"></script>
+  <script>
+    let lastToken = "";
+    let lastTaskId = "";
+    let lastUserId = "";
+
+    function userIdFromToken(token) {
+      try {
+        return JSON.parse(atob(token.split(".")[1])).user_id || "";
+      } catch (e) {
+        return "";
+      }
+    }
+
+    const ui = SwaggerUIBundle({
+      url: "/swagger/openapi.yaml",
+      dom_id: "#swagger-ui",
+      tryItOutEnabled: true,
+
+      // "pre-request script": ganti isian auto / latest sebelum request dikirim
+      requestInterceptor: (req) => {
+        if (lastToken && !req.headers["Authorization"]) {
+          req.headers["Authorization"] = "Bearer " + lastToken;
+        }
+        if (req.headers["Idempotency-Key"] === "auto") {
+          req.headers["Idempotency-Key"] = crypto.randomUUID();
+        }
+        if (req.url.includes("/tasks/latest")) {
+          if (!lastTaskId) {
+            alert("Belum ada task. Jalankan 'Buat task' dulu.");
+          }
+          req.url = req.url.replace("/tasks/latest", "/tasks/" + lastTaskId);
+        }
+        if (typeof req.body === "string" && req.body.includes('"latest"')) {
+          req.body = req.body.replace('"latest"', JSON.stringify(lastUserId));
+        }
+        return req;
+      },
+
+      responseInterceptor: (res) => {
+        const data = res.body && res.body.data;
+        if (!res.ok || !data) {
+          return res;
+        }
+
+        if (res.url.endsWith("/auth/register")) {
+          lastUserId = data.id;
+        }
+        if (res.url.endsWith("/auth/login")) {
+          lastToken = data.token;
+          lastUserId = userIdFromToken(data.token);
+        }
+        if (res.url.endsWith("/api/v1/tasks") && res.status === 201) {
+          lastTaskId = data.id;
+        }
+        return res;
+      },
+    });
+  </script>
+</body>
+
+</html>
