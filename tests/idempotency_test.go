@@ -3,12 +3,14 @@ package tests
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/barrukurniawan/multi_user/core/dto"
+	"github.com/barrukurniawan/multi_user/core/helpers"
 	"github.com/barrukurniawan/multi_user/core/models"
 	"github.com/barrukurniawan/multi_user/core/repositories"
 	"github.com/barrukurniawan/multi_user/core/services"
@@ -44,20 +46,20 @@ func (m *mockIdempotencyRepo) Find(ctx context.Context, key string) (*models.Ide
 	return &k, nil
 }
 
-func (m *mockIdempotencyRepo) Reserve(ctx context.Context, key, userID string, ttl time.Duration) (bool, error) {
+func (m *mockIdempotencyRepo) Reserve(ctx context.Context, key, requestHash string, ttl time.Duration) (bool, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if _, exists := m.keys[key]; exists {
 		return false, nil
 	}
-	m.keys[key] = models.IdempotencyKey{UserID: userID}
+	m.keys[key] = models.IdempotencyKey{RequestHash: requestHash}
 	return true, nil
 }
 
-func (m *mockIdempotencyRepo) SaveResponse(ctx context.Context, key, userID string, response []byte, statusCode int) error {
+func (m *mockIdempotencyRepo) SaveResponse(ctx context.Context, key, requestHash string, response []byte, statusCode int) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	m.keys[key] = models.IdempotencyKey{UserID: userID, StatusCode: statusCode, Response: response}
+	m.keys[key] = models.IdempotencyKey{RequestHash: requestHash, StatusCode: statusCode, Response: response}
 	return nil
 }
 
@@ -122,5 +124,42 @@ func TestIdempotencyConcurrentDuplicate(t *testing.T) {
 
 	if tasks.count != 1 {
 		t.Fatalf("task dibuat %d kali, seharusnya tepat 1", tasks.count)
+	}
+}
+
+func TestIdempotencySameKeyDifferentBody(t *testing.T) {
+	svc, tasks := newService()
+	key := uuid.NewString()
+
+	_, _, err := svc.Create(context.Background(), "user-1", key, dto.CreateTaskRequest{Title: "Belajar Go"})
+	if err != nil {
+		t.Fatalf("request pertama gagal: %v", err)
+	}
+
+	// key sama, tapi isi body beda
+	_, _, err = svc.Create(context.Background(), "user-1", key, dto.CreateTaskRequest{Title: "Belajar Python 3"})
+
+	var appErr *helpers.AppError
+	if !errors.As(err, &appErr) || appErr.StatusCode != 422 {
+		t.Fatalf("seharusnya error 422, dapat: %v", err)
+	}
+	if tasks.count != 1 {
+		t.Fatalf("task dibuat %d kali, seharusnya 1", tasks.count)
+	}
+}
+
+func TestIdempotencySameKeyDifferentUser(t *testing.T) {
+	svc, tasks := newService()
+	key := uuid.NewString()
+	req := dto.CreateTaskRequest{Title: "Belajar Go"}
+
+	// user berbeda memakai key yang sama, masing-masing tetap dapat task sendiri
+	task1, _, err1 := svc.Create(context.Background(), "user-1", key, req)
+	task2, _, err2 := svc.Create(context.Background(), "user-2", key, req)
+	if err1 != nil || err2 != nil {
+		t.Fatalf("seharusnya keduanya berhasil: err1=%v err2=%v", err1, err2)
+	}
+	if tasks.count != 2 || task1.ID == task2.ID {
+		t.Fatalf("seharusnya 2 task berbeda, dapat count=%d id1=%s id2=%s", tasks.count, task1.ID, task2.ID)
 	}
 }
