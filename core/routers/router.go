@@ -6,6 +6,7 @@ import (
 	"github.com/barrukurniawan/multi_user/core/controllers"
 	"github.com/barrukurniawan/multi_user/core/dto"
 	"github.com/barrukurniawan/multi_user/core/helpers"
+	"github.com/barrukurniawan/multi_user/docs"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,6 +21,7 @@ func (c *Config) Setup() {
 	c.HealthRoute()
 	c.AuthRoute()
 	c.TaskRoute()
+	c.SwaggerRoute()
 	c.NotFoundRoute()
 }
 func (c *Config) HealthRoute() {
@@ -44,6 +46,16 @@ func (c *Config) TaskRoute() {
 	r.PUT("/:id", c.TaskController.Update)
 	r.DELETE("/:id", c.TaskController.Delete)
 	r.POST("/:id/assign", c.TaskController.Assign)
+}
+
+// buka http://localhost:8080/swagger di browser
+func (c *Config) SwaggerRoute() {
+	c.Server.GET("/swagger", func(ctx *gin.Context) {
+		ctx.Data(http.StatusOK, "text/html; charset=utf-8", docs.SwaggerHTML)
+	})
+	c.Server.GET("/swagger/openapi.yaml", func(ctx *gin.Context) {
+		ctx.Data(http.StatusOK, "application/yaml", docs.OpenAPI)
+	})
 }
 
 // supaya 404 & 405 juga balas JSON, bukan teks bawaan gin

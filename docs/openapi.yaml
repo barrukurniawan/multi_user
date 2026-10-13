@@ -1,0 +1,340 @@
+openapi: 3.0.3
+info:
+  title: Task Management API (Multi-User)
+  version: 1.0.0
+  description: |
+    Cara tes di Swagger ini:
+    1. **Register** → **Login** (token otomatis dipasang, tidak perlu klik Authorize)
+    2. **Create task** (task_id otomatis disimpan)
+    3. Endpoint lain: isi `task_id` dengan `latest` untuk memakai task terakhir yang dibuat
+
+    Isian otomatis:
+    - Header `Idempotency-Key` berisi `auto` → dibuatkan UUID baru setiap request.
+      Isi dengan UUID sendiri (dan kirim 2x) untuk mengetes idempotency.
+    - `assignee_id` berisi `latest` → memakai id user yang terakhir register / login.
+
+servers:
+  - url: /
+
+tags:
+  - name: Auth
+  - name: Tasks
+
+paths:
+  /api/v1/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register user baru
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: User berhasil dibuat
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: success }
+                  data: { $ref: "#/components/schemas/User" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login, dapat JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login berhasil
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: success }
+                  data:
+                    type: object
+                    properties:
+                      token: { type: string, example: "<jwt-token>" }
+                      token_type: { type: string, example: Bearer }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /api/v1/tasks:
+    post:
+      tags: [Tasks]
+      summary: Buat task
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: UUID. Isi `auto` untuk dibuatkan UUID baru.
+          schema: { type: string, example: auto }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTaskRequest"
+      responses:
+        "201":
+          description: Task dibuat (atau response yang sama kalau Idempotency-Key sudah pernah dipakai)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TaskResponse" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+    get:
+      tags: [Tasks]
+      summary: List task
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string, enum: [todo, in_progress, done] }
+        - name: search
+          in: query
+          description: Cari berdasarkan title
+          schema: { type: string, example: belajar }
+        - name: page
+          in: query
+          schema: { type: integer, example: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, example: 10 }
+      responses:
+        "200":
+          description: List task
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: success }
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Task" }
+                  meta: { $ref: "#/components/schemas/PaginationMeta" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /api/v1/tasks/{task_id}:
+    parameters:
+      - $ref: "#/components/parameters/TaskID"
+    get:
+      tags: [Tasks]
+      summary: Detail task
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Detail task
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TaskResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    put:
+      tags: [Tasks]
+      summary: Update task (semua field opsional)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTaskRequest"
+      responses:
+        "200":
+          description: Task berhasil diupdate
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TaskResponse" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      tags: [Tasks]
+      summary: Hapus task
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Task berhasil dihapus
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: success }
+                  data:
+                    type: object
+                    properties:
+                      message: { type: string, example: task berhasil dihapus }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/v1/tasks/{task_id}/assign:
+    parameters:
+      - $ref: "#/components/parameters/TaskID"
+    post:
+      tags: [Tasks]
+      summary: Assign task ke user lain dalam tim yang sama
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssignTaskRequest"
+      responses:
+        "200":
+          description: Task berhasil di-assign
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TaskResponse" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    TaskID:
+      name: task_id
+      in: path
+      required: true
+      description: UUID task. Isi `latest` untuk memakai task terakhir yang dibuat.
+      schema: { type: string, example: latest }
+
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [name, email, password, team_name]
+      properties:
+        name: { type: string, example: Barru Kurniawan }
+        email: { type: string, example: barru@example.com }
+        password: { type: string, example: rahasia123, minLength: 6 }
+        team_name: { type: string, example: Engineering }
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, example: barru@example.com }
+        password: { type: string, example: rahasia123 }
+
+    CreateTaskRequest:
+      type: object
+      required: [title]
+      properties:
+        title: { type: string, example: Belajar Go }
+        description: { type: string, example: Ketik ulang project multi_user }
+        status: { type: string, enum: [todo, in_progress, done], example: todo }
+
+    UpdateTaskRequest:
+      type: object
+      properties:
+        title: { type: string, example: Belajar Go (updated) }
+        description: { type: string, example: Sudah sampai task route }
+        status: { type: string, enum: [todo, in_progress, done], example: in_progress }
+
+    AssignTaskRequest:
+      type: object
+      required: [assignee_id]
+      properties:
+        assignee_id:
+          type: string
+          description: UUID user. Isi `latest` untuk memakai user terakhir yang register / login.
+          example: latest
+
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        team_id: { type: string, format: uuid }
+        name: { type: string }
+        email: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    Task:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        description: { type: string }
+        status: { type: string, enum: [todo, in_progress, done] }
+        user_id: { type: string, format: uuid }
+        assignee_id: { type: string, format: uuid, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    TaskResponse:
+      type: object
+      properties:
+        status: { type: string, example: success }
+        data: { $ref: "#/components/schemas/Task" }
+
+    PaginationMeta:
+      type: object
+      properties:
+        page: { type: integer, example: 1 }
+        limit: { type: integer, example: 10 }
+        total: { type: integer, example: 1 }
+        total_pages: { type: integer, example: 1 }
+
+    Error:
+      type: object
+      properties:
+        status: { type: string, example: error }
+        code: { type: string, example: TASK_NOT_FOUND }
+        message: { type: string, example: task tidak ditemukan }
+        timestamp: { type: string, example: "2026-10-13T07:21:25Z" }
+
+  responses:
+    BadRequest:
+      description: Input tidak valid
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Unauthorized:
+      description: Token tidak ada / tidak valid, atau login gagal
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Forbidden:
+      description: Tidak punya akses
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    NotFound:
+      description: Data tidak ditemukan
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Conflict:
+      description: Data bentrok (email sudah terdaftar / Idempotency-Key masih diproses)
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }

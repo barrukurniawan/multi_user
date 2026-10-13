@@ -68,7 +68,6 @@ func main() {
 	taskService := services.NewTaskService(taskRepo, taskLogRepo, idemRepo, userRepo, dbManager, notifier)
 	taskController := controllers.NewTaskController(taskService)
 
-	// pakai middleware sendiri (log JSON + recovery JSON), bukan bawaan gin
 	r := gin.New()
 	r.Use(helpers.LoggingMiddleware(), helpers.RecoveryMiddleware())
 

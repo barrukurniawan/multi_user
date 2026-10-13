@@ -1,7 +1,5 @@
 package tests
 
-// Test authentication (nilai tambah): register, email dobel, login, dan JWT.
-
 import (
 	"context"
 	"testing"
@@ -13,7 +11,6 @@ import (
 	"github.com/barrukurniawan/multi_user/core/services"
 )
 
-// fakeUserRepo menyimpan user di map (email → user)
 type fakeUserRepo struct {
 	repositories.UserRepository
 	users map[string]*models.User

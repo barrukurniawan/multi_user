@@ -22,7 +22,6 @@ func WriteError(c *gin.Context, err error) {
 	c.JSON(http.StatusInternalServerError, dto.Error("INTERNAL_ERROR", "terjadi kesalahan pada server"))
 }
 
-// pesan error asli dari Go tidak dikirim ke client, cukup sebut field yang salah
 func WriteBindError(c *gin.Context, err error) {
 	message := "format request tidak valid"
 
