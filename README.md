@@ -2,7 +2,7 @@
 
 REST API untuk mengelola task - Created by Barru Kurniawan
 
-[![Swagger](https://img.shields.io/badge/Swagger-API_Docs-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)](http://localhost:8080/swagger)
+[![Swagger](https://img.shields.io/badge/Swagger-API_Docs-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)](https://barrukurniawan.web.id/swagger)
 [![Postman](https://img.shields.io/badge/Postman-Collection-FF6C37?style=for-the-badge&logo=postman&logoColor=white)](docs/Tasks.postman_collection.json)
 
 ## Coba API
