@@ -114,6 +114,13 @@ Semua error dibalas dengan format JSON yang sama:
 }
 ```
 
+## Handling Idempotency
+
+Ketika klik tombol "Buat Task" berkali-kali , internet lemot, jadi aplikasi mengirim ulang request yang sama. Tanpa idempotency, task-nya bisa terbuat 2x bahkan lebih. Handling Idempotency mencegahnya.
+
+Caranya, setiap request `POST /tasks` wajib membawa header `Idempotency-Key` berisi UUID, semacam "nomor antrean" untuk request tersebut. Disimpan di Redis hingga **24 jam**. Setiap user punya key Redis-nya sendiri agar tidak bentrok dengan user lain.
+
+
 ## Arsitektur
 
 Alur request:
@@ -138,7 +145,7 @@ tests/               -> unit test idempotency, auth, error handling, logging (pa
 ```
 
 Catatan beberapa fitur:
-- **Idempotency** : `POST /tasks` wajib kirim header `Idempotency-Key` (UUID). Key disimpan di Redis selama 24 jam. Kalau key yang sama dikirim lagi, server balikin response yang sama tanpa bikin task baru. Untuk request yang datang bersamaan, key di-"reserve" pakai Redis `SETNX` jadi cuma satu request yang benar-benar bikin task.
+- **Idempotency** : lihat [Cara Kerja Idempotency](#cara-kerja-idempotency).
 - **Transaction** : Assign task berjalan dalam satu transaction (update assignee, simpan ke `task_logs`, kirim notifikasi). Kalau salah satu gagal, semua di-rollback. Notifikasi masih berupa log.
 - **Logging** : Setiap request menghasilkan log JSON berisi `request_id`, `method`, `path`, `status_code`, `latency_ms`. Level INFO untuk 2xx/3xx, WARN untuk 4xx, ERROR untuk 5xx.
 - **Error handling** : Panic ditangkap oleh `RecoveryMiddleware` dan dibalas 500 dalam format JSON, tanpa stack trace di response (stack trace hanya ditulis ke log).

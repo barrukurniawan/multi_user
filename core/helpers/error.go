@@ -35,3 +35,7 @@ func NotFound(code, message string) *AppError {
 func Conflict(code, message string) *AppError {
 	return NewAppError(http.StatusConflict, code, message)
 }
+
+func UnprocessableEntity(code, message string) *AppError {
+	return NewAppError(http.StatusUnprocessableEntity, code, message)
+}

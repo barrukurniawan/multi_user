@@ -2,6 +2,8 @@ package services
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -68,18 +70,23 @@ func (s *taskService) Create(ctx context.Context, userID, idempotencyKey string,
 		return nil, 0, invalidStatusError()
 	}
 
-	task, statusCode, err := s.findSavedResponse(ctx, userID, idempotencyKey)
+	// key dipisah per user, jadi key yang sama dari user lain tidak saling bentrok
+	userKey := userID + ":" + idempotencyKey
+	// sidik jari isi request, untuk mendeteksi key sama tapi body beda
+	requestHash := hashRequest(req)
+
+	task, statusCode, err := s.findSavedResponse(ctx, userKey, requestHash)
 	if err != nil || task != nil {
 		return task, statusCode, err
 	}
 
-	reserved, err := s.idemRepo.Reserve(ctx, idempotencyKey, userID, idempotencyWindow)
+	reserved, err := s.idemRepo.Reserve(ctx, userKey, requestHash, idempotencyWindow)
 	if err != nil {
 		return nil, 0, err
 	}
 	if !reserved {
 
-		task, statusCode, err = s.findSavedResponse(ctx, userID, idempotencyKey)
+		task, statusCode, err = s.findSavedResponse(ctx, userKey, requestHash)
 		if err == nil && task == nil {
 			err = errKeyProcessing
 		}
@@ -93,13 +100,13 @@ func (s *taskService) Create(ctx context.Context, userID, idempotencyKey string,
 		UserID:      userID,
 	}
 	if err := s.taskRepo.Create(ctx, task); err != nil {
-		_ = s.idemRepo.Release(ctx, idempotencyKey)
+		_ = s.idemRepo.Release(ctx, userKey)
 		return nil, 0, err
 	}
 
 	body, err := json.Marshal(task)
 	if err == nil {
-		err = s.idemRepo.SaveResponse(ctx, idempotencyKey, userID, body, http.StatusCreated)
+		err = s.idemRepo.SaveResponse(ctx, userKey, requestHash, body, http.StatusCreated)
 	}
 	if err != nil {
 
@@ -108,13 +115,13 @@ func (s *taskService) Create(ctx context.Context, userID, idempotencyKey string,
 	return task, http.StatusCreated, nil
 }
 
-func (s *taskService) findSavedResponse(ctx context.Context, userID, key string) (*models.Task, int, error) {
+func (s *taskService) findSavedResponse(ctx context.Context, key, requestHash string) (*models.Task, int, error) {
 	saved, err := s.idemRepo.Find(ctx, key)
 	if err != nil || saved == nil {
 		return nil, 0, err
 	}
-	if saved.UserID != userID {
-		return nil, 0, helpers.Conflict("IDEMPOTENCY_KEY_CONFLICT", "Idempotency-Key sudah dipakai untuk request lain")
+	if saved.RequestHash != requestHash {
+		return nil, 0, helpers.UnprocessableEntity("IDEMPOTENCY_KEY_REUSED", "Idempotency-Key sudah dipakai dengan isi request yang berbeda, gunakan key baru")
 	}
 	if saved.Response == nil {
 		return nil, 0, errKeyProcessing
@@ -270,4 +277,11 @@ func (s *taskService) findTask(ctx context.Context, userID, taskID string, owner
 
 func invalidStatusError() error {
 	return helpers.BadRequest("INVALID_STATUS", "status harus salah satu dari: todo, in_progress, done")
+}
+
+// sha256 dari isi request, body yang sama selalu menghasilkan hash yang sama
+func hashRequest(req dto.CreateTaskRequest) string {
+	body, _ := json.Marshal(req)
+	sum := sha256.Sum256(body)
+	return hex.EncodeToString(sum[:])
 }
