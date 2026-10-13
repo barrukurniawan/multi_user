@@ -8,7 +8,11 @@ import (
 	"sort"
 
 	"github.com/barrukurniawan/multi_user/core/config"
+	"github.com/barrukurniawan/multi_user/core/controllers"
+	"github.com/barrukurniawan/multi_user/core/helpers"
+	"github.com/barrukurniawan/multi_user/core/repositories"
 	"github.com/barrukurniawan/multi_user/core/routers"
+	"github.com/barrukurniawan/multi_user/core/services"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/postgres"
@@ -51,9 +55,15 @@ func main() {
 		fatal("failed to run migrations", err)
 	}
 
+	userRepo := repositories.NewUserRepository(db)
+	jwtManager := helpers.NewJWTManager(cfg.JWTSecret, cfg.JWTExpiryHours)
+	authService := services.NewAuthService(userRepo, jwtManager)
+	authController := controllers.NewAuthController(authService)
+
 	r := gin.Default()
 	routerConfig := routers.Config{
-		Server: r,
+		Server:         r,
+		AuthController: authController,
 	}
 	routerConfig.Setup()
 
