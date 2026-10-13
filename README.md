@@ -145,8 +145,6 @@ tests/               -> unit test idempotency, auth, error handling, logging (pa
 ```
 
 Catatan beberapa fitur:
-- **Idempotency** : lihat [Cara Kerja Idempotency](#cara-kerja-idempotency).
-- **Transaction** : Assign task berjalan dalam satu transaction (update assignee, simpan ke `task_logs`, kirim notifikasi). Kalau salah satu gagal, semua di-rollback. Notifikasi masih berupa log.
 - **Logging** : Setiap request menghasilkan log JSON berisi `request_id`, `method`, `path`, `status_code`, `latency_ms`. Level INFO untuk 2xx/3xx, WARN untuk 4xx, ERROR untuk 5xx.
-- **Error handling** : Panic ditangkap oleh `RecoveryMiddleware` dan dibalas 500 dalam format JSON, tanpa stack trace di response (stack trace hanya ditulis ke log).
+- **Error handling** : Panic dicover oleh `RecoveryMiddleware` dan dibalas 500 dalam format JSON, tanpa stack trace di response (stack trace hanya ditulis ke log).
 - **Team** : Team dibuat otomatis saat register berdasarkan `team_name`. User dengan `team_name` yang sama dianggap satu tim.
