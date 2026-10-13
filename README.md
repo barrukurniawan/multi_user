@@ -54,7 +54,7 @@ Jika ingin kondisi perulangan, cth : 30x
 ```
 go test -race -count=30 ./tests/
 ```
-Jika ingin test semua file
+Jika ingin test semua file & tampil detailnya
 ```
 go test -v ./tests/
 ```
@@ -74,6 +74,12 @@ go test -v ./tests/
 | POST | `/api/v1/tasks/:id/assign` | Bearer | Assign task ke user lain dalam tim yang sama |
 
 Status task: `todo`, `in_progress`, `done`.
+
+### Postman Collection
+Download: [Tasks.postman_collection.json](docs/Tasks.postman_collection.json)
+
+Cara pakai: buka Postman → Import → pilih file Tasks.postman_collection.json
+Jalankan sekaligus lewat **Run collection**.
 
 ### Contoh request
 
@@ -131,7 +137,7 @@ core/
   models/            -> struct tabel
   dto/               -> struct request & response
   helpers/           -> JWT, middleware, format error
-tests/               -> unit test idempotency (pakai mock)
+tests/               -> unit test idempotency, auth, error handling, logging (pakai mock)
 ```
 
 Catatan beberapa fitur:
