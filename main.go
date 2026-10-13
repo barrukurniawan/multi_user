@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -9,6 +10,7 @@ import (
 	"github.com/barrukurniawan/multi_user/core/config"
 	"github.com/barrukurniawan/multi_user/core/routers"
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -37,6 +39,14 @@ func main() {
 
 	slog.Info("database connected", "db", cfg.DBName)
 
+	rdb := redis.NewClient(&redis.Options{Addr: cfg.RedisAddr, Password: cfg.RedisPassword})
+	if err := rdb.Ping(context.Background()).Err(); err != nil {
+		fatal("failed to connect to redis", err)
+	}
+	defer rdb.Close()
+
+	slog.Info("Redis connected", "redis", cfg.RedisAddr)
+
 	if err := runMigrations(db, "migrations"); err != nil {
 		fatal("failed to run migrations", err)
 	}
@@ -46,7 +56,11 @@ func main() {
 		Server: r,
 	}
 	routerConfig.Setup()
-	r.Run(":8080")
+
+	slog.Info("server started", "port", cfg.ServerPort)
+	if err := r.Run(":" + cfg.ServerPort); err != nil {
+		fatal("server stopped", err)
+	}
 }
 
 // Log ERROR (slog tidak punya level Fatal)
